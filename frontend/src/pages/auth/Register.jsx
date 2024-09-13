@@ -1,56 +1,85 @@
-import { useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { axiosClient } from "../../api/axios";
 import { UseStateContext } from "../../contexts/ContextProvider";
+import { Spinner } from "flowbite-react";
+import { HiInformationCircle } from "react-icons/hi";
+import { Alert } from "flowbite-react";
 
 
 export default function Register() {
 
   const { setUser } = UseStateContext();
-  const refName = useRef();
-  const refEmail = useRef();
-  const refPassword = useRef();
-  // const [success, setSuccess] = useState('');
+  const [userData, setUserData] = useState({
+    name: '',
+    email: '',
+    password: '',
+  })
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
+
+
+  const handleChange = (e) => {
+    setUserData({
+      ...userData,
+      [e.target.name]: e.target.value
+    });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const payload = {
-      name: refName.current.value,
-      email: refEmail.current.value,
-      password: refPassword.current.value,
-    }
-
-      axiosClient.post("/users", payload)
+    setLoading(true);
+    if(userData.password.length < 6) {
+        setError("password must be at least characters!")
+        setLoading(false)
+    } else {
+      axiosClient.post("/users", userData)
       .then((data) => {
         const res = data.data;
         setUser(res);
-        navigate('/login')
-        
+        setSuccess('Register Successfully...');
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 1000)
       }).catch((error) => {
         const res = error.response;
         const msg = res.data.errors.email;
         if(res.status == 400) {
             setError(msg)
+            setLoading(false)
         }
     })
   }
+  }
 
   return (
-    <div className='grid lg:grid-cols-2 grid-cols-1 gap-4'>
-        <div className='container mx-auto my-20'>
-          <div className='w-80 mx-auto space-y-6'>
+    <div className='flex items-center w-4/5 mx-auto'>
+        <div className='mx-auto my-20'>
+            {
+              success &&  
+              <Alert color="success" className="ease-in duration-100 mb-2">
+                <span className="font-medium">{success}</span> 
+              </Alert>
+            }
+          <div className='w-80 mx-auto space-y-3'>
             <h1 className='text-2xl text-black font-semibold'>Register</h1>
-            <p className='w-72 text-balck mt-5'>If you dont have an account register You can 
-              <Link to='/login' className='text-blue-800'> Login here !</Link>
+            <p>If you have an account You may<br /> 
+              <Link to='/login' className='text-blue-800'>Login Now !</Link>
             </p>
-            {error && <p className="text-base text-red-300">{error}</p>}
-            <form onSubmit={handleSubmit}>
-              <div className="relative">
+            {
+              error &&  
+              <Alert color="failure" icon={HiInformationCircle} onDismiss={() => setError(false)}>
+                <span className="font-medium">{error}</span> 
+              </Alert>
+            }
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div className="form-login">
                 <label className='text-slate-500'>Name</label>
                 <input
-                  ref={refName} 
+                  name="name"
+                  value={userData.name}
+                  onChange={handleChange} 
                   className='outline-none w-80 py-2 px-3 border rounded-md'
                   type='text' 
                   placeholder='Enter your name' 
@@ -58,10 +87,12 @@ export default function Register() {
                 />
               </div>
 
-              <div className="relative">
+              <div className="form-login">
                 <label className='text-slate-500'>Email</label>
                 <input
-                  ref={refEmail} 
+                  name="email"
+                  value={userData.email}
+                  onChange={handleChange}
                   className='outline-none w-80 py-2 px-3 border rounded-md'
                   type='email' 
                   placeholder='Enter your email address' 
@@ -69,29 +100,42 @@ export default function Register() {
                 />
               </div>
 
-              <div className="form-login relative">
+              <div className="form-login">
                 <label className='text-slate-500'>Password</label>
                 <input 
-                  ref={refPassword}
+                  name="password"
+                  value={userData.password}
+                  onChange={handleChange}
                   className='outline-none w-80 py-2 px-3 border rounded-md'
                   type='password' 
                   placeholder='Enter your Password' 
                   required
                 />
               </div>
-
+              <div className="pt-3">
+              {
+                loading ? 
+                <button 
+                  className='bg-blue-800 text-white w-full h-10 rounded-full shadow-lg shadow-blue-500/40'
+                  >
+                  <Spinner aria-label="Loading register" size="sm" />
+                  <span className="pl-3">Loading...</span>
+                </button> :
                 <button 
                   type="submit"
-                  className='bg-blue-800 text-white w-full h-10 mt-16 rounded-full shadow-lg shadow-blue-500/40'
+                  className='bg-blue-800 text-white w-full h-10 rounded-full shadow-lg shadow-blue-500/40'
                   >
                     Register
                 </button>
+              }
+              </div>
               </form>
           </div>
         </div>
-        <div className='bg-blue-950 rounded lg:block hidden avatar'>
-            <h2 className='text-white text-3xl font-sans font-bold ml-20 mt-10'>Register to name</h2>
-            <p className='text-white text-lg font-sans ml-20'>Lorem Ipsum is simply </p>
+        <div className='bg-blue-950 rounded hidden lg:block min-h-96'>
+          <div className="mx-auto w-1/2 mb-20">
+              <img src="/assets/auth-img.png" alt="auth-image" />
+          </div>
         </div>
       </div>
   )

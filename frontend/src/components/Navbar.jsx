@@ -1,6 +1,9 @@
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react'
 import { UserIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { NavLink, Link } from "react-router-dom";
+import { UseStateContext } from '../contexts/ContextProvider';
+import { axiosClient } from '../api/axios';
+import { useEffect } from 'react';
 
 
 const Menus = [
@@ -11,9 +14,29 @@ const Menus = [
 ]
 
 export default function Navbar() {
+    const { user, setUser, setToken } = UseStateContext();
+
+    // const handleLogout = (e) => {
+    //     e.prefenDevault();
+    //     axiosClient.get('/logout')
+    //     .then(() => {
+    //         setUser(null);
+    //         setUser(null)
+    //     })
+    // }
+
+    // useEffect(() => {
+    //     axiosClient.get('/users', user)
+    //     .then((data) => {
+    //         setUser(console.log(data.data));
+    //         setToken(null);
+    //     }).catch((err) => {
+    //         console.log(err)
+    //     })
+    // })
 
   return (
-    <Disclosure as="nav" className={`fixed top-0 left-0 right-0 z-50 shadow-xl`}>
+    <Disclosure as="nav" className="fixed top-0 left-0 right-0 bg-white z-10 shadow-xl">
     <div className="mx-auto max-w-6xl px-2 sm:px-6 lg:px-8">
     <div className="relative flex h-16 items-center justify-between">
       <div className="inset-y-0 left-0 flex items-center sm:hidden">
@@ -42,9 +65,13 @@ export default function Navbar() {
                 }
             </div>
         </div>
-        <div className="hidden sm:ml-6 sm:block">
+        <div className="sm:ml-6">
             <div className="flex items-center space-x-2 lg:space-x-5 dark:text-white">
-                <UserIcon className="text-current h-6" />
+                <div className='flex'>
+                       {user}
+                      <UserIcon className="text-current h-6" />
+                </div>
+                <button className='bg-white border rounded-md py-1 px-3'>Logout</button>
             </div>
         </div>
         </div>

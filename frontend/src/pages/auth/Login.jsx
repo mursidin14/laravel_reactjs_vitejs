@@ -1,22 +1,36 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { axiosClient } from "../../api/axios";
 import { UseStateContext } from "../../contexts/ContextProvider";
+import { Spinner } from "flowbite-react";
+import { HiInformationCircle } from "react-icons/hi";
+import { Alert } from "flowbite-react";
+
 
 export default function Login() {
-
   const { setUser, setToken } = UseStateContext();
-  const refEmail = useRef();
-  const refPassword = useRef();
+  const [userData, setUserData] = useState({
+    email:'',
+    password: '',
+  });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+
+  const handleChange = (e) => {
+    setUserData({
+      ...userData,
+      [e.target.name]: e.target.value
+    });
+  };
 
   const handleSubmit = (e) => {
-      e.preventDefault();
-    const payload = {
-      email: refEmail.current.value,
-      password: refPassword.current.value,
-    };
- 
-      axiosClient.post("/users/login", payload)
+    e.preventDefault();
+    setLoading(true);
+    if(userData.password.length < 6){
+      setError("password must be at least 6 character");
+      setLoading(false);
+    } else {
+      axiosClient.post("/users/login", userData)
       .then(({data}) => {
         setUser(data.data)
         setToken(data.data.token)
@@ -25,27 +39,34 @@ export default function Login() {
           const msg = res.data.errors.message;
           if(res.status == 401) {
               setError(msg)
+              setLoading(false);
           }
-          console.log(error);
-      })
-    
+      }) 
+    }
   }
 
 
   return (
-    <div className='grid lg:grid-cols-2 grid-cols-1 gap-4'>
-      <div className='container mx-auto my-20'>
+    <div className='flex items-center w-4/5 mx-auto'>
+      <div className='mx-auto my-20'>
         <div className='w-80 mx-auto space-y-7'>
           <h1 className='text-2xl text-black font-semibold'>Login</h1>
-          <p className='w-72 text-balck mt-5'>If you dont have an account register You can 
+          <p>If you dont have an account register You can<br />  
             <a href='/register' className='text-blue-800'> Register here !</a>
           </p>
-          {error && <p className="text-base text-red-300">{error}</p>}
-          <form onSubmit={handleSubmit}>
+          {
+              error &&  
+              <Alert color="failure" icon={HiInformationCircle} onDismiss={() => setError(false)}>
+                  <span className="font-medium">{error}</span> 
+              </Alert>
+          }
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="form-login relative">
               <label className='text-slate-500'>Email</label>
               <input 
-                ref={refEmail}
+                name="email"
+                value={userData.email}
+                onChange={handleChange}
                 className='outline-none w-80 py-2 px-3 border rounded-md'
                 type='email' 
                 placeholder='Enter your email address' 
@@ -56,31 +77,45 @@ export default function Login() {
             <div className="form-login relative">
                 <label className='text-slate-500'>Password</label>
                 <input 
-                  ref={refPassword}
+                  name="password"
+                  value={userData.password}
+                  onChange={handleChange}
                   className='outline-none w-80 py-2 px-3 border rounded-md'
                   type='password' 
                   placeholder='Enter your password' 
                   required
                 />
             </div>
-             <div className='flex mt-2'>
-                <input type='checkbox' className='mr-2' />
-                <p className='text-black mr-16'>Remember me</p>
+             <div className='flex mt-2 justify-between'>
+                <div className="flex items-center">
+                  <input type='checkbox' className='mr-2' />
+                  <p className='text-black'>Remember me</p>
+                </div>
                 <a href='#' className='text-slate-500'>Forgot Password ?</a>
              </div>
 
-                <button 
-                  className='bg-blue-800 text-white w-full h-10 mt-16 rounded-full shadow-lg shadow-blue-500/40'
-                  type="submit"
-                  >
-                    Login
-                </button>
+             {
+              loading ? 
+              <button 
+                className='bg-blue-800 text-white w-full h-10 mt-16 rounded-full shadow-lg shadow-blue-500/40'
+                >
+                <Spinner aria-label="Loading register" size="sm" />
+                <span className="pl-3">Loading...</span>
+              </button> :
+              <button 
+                type="submit"
+                className='bg-blue-800 text-white w-full h-10 mt-16 rounded-full shadow-lg shadow-blue-500/40'
+                >
+                  Login
+              </button>
+            }
               </form>    
         </div>
       </div>
-           <div className='bg-blue-950 rounded lg:block hidden avatar'>
-            <h2 className='text-white text-3xl font-sans font-bold ml-20 mt-10'>Login to name</h2>
-            <p className='text-white text-lg font-sans ml-20'>Lorem Ipsum is simply </p>
+      <div className='bg-blue-950 rounded lg:block hidden min-h-96'>
+            <div className="mx-auto w-1/2">
+                <img src="/assets/auth-img.png" alt="auth-image" />
+            </div>
         </div>
       </div>
   )

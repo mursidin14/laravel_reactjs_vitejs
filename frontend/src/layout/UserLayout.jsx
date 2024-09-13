@@ -5,6 +5,8 @@ export default function UserLayout() {
 
   const { token } = UseStateContext();
 
+  console.log(token)
+
   if(token) {
     return <Navigate to="/" />
   }
